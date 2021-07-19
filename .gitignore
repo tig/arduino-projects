@@ -4,3 +4,6 @@ hardware
 *.o
 *.a
 .depend
+.vscode
+.vs
+.pio

@@ -1,0 +1,32 @@
+{
+  "name": "Terminal",
+  "version": "0.1.0",
+  "description": "Terminal library for Arduine",
+  "keywords": "terminal, shell, telnet, console",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tig/arduino-projects.git"
+  },
+  "authors": [
+    {
+      "name": "Charlie Kindel",
+      "email": "tig@kindel.com",
+      "url": "https://www.kindel.com",
+      "maintainer": true
+    }
+  ],
+  "examples": [
+    {
+      "name": "sample",
+      "base": "examples",
+      "files": [
+        "main.cpp"
+      ]
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/tig/arduino-projects.git",
+  "dependencies": {},
+  "frameworks": "*",
+  "platforms": "*"
+}
