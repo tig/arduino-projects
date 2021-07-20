@@ -52,16 +52,16 @@ typedef struct
 {
     const char *name;
     const char *help;
-    ShellCommandFunc func;
 
 } ShellCommandInfo;
 
 class ShellCommandRegister
 {
 public:
-    inline ShellCommandRegister(const ShellCommandInfo *_info);
+    inline ShellCommandRegister(const ShellCommandInfo *_info, ShellCommandFunc func);
 
     const ShellCommandInfo *info;
+    ShellCommandFunc func;
     ShellCommandRegister *next;
 };
 
@@ -149,9 +149,10 @@ private:
 
 /** @cond */
 
-inline ShellCommandRegister::ShellCommandRegister(const ShellCommandInfo *_info)
-    : info(_info)
-    , next(0)
+inline ShellCommandRegister::ShellCommandRegister(const ShellCommandInfo *_info, ShellCommandFunc func)
+    : info(_info), 
+    func(func),
+    next(0)
 {
     Shell::registerCommand(this);
 }
@@ -163,9 +164,8 @@ inline ShellCommandRegister::ShellCommandRegister(const ShellCommandInfo *_info)
     static char const shell_help_##name[] PROGMEM = help; \
     static ShellCommandInfo const shell_info_##name PROGMEM = { \
         shell_id_##name, \
-        shell_help_##name, \
-        (function) \
+        shell_help_##name \
     }; \
-    static ShellCommandRegister shell_cmd_##name(&shell_info_##name)
+    static ShellCommandRegister shell_cmd_##name(&shell_info_##name, (function))
 
 #endif

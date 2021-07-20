@@ -129,7 +129,7 @@ Shell::Shell()
     , historySize(0)
     , prom("$ ")
     , isClient(false)
-    , lineMode(LINEMODE_NORMAL | LINEMODE_ECHO)
+    , lineMode(LINEMODE_NORMAL) // | LINEMODE_ECHO)
     , uid(-1)
     , timer(0)
 {
@@ -445,21 +445,21 @@ static const char *readInfoHelp(const ShellCommandInfo *info)
 #endif
 }
 
-// Reads the "func" field from a command information block in program memory.
-static ShellCommandFunc readInfoFunc(const ShellCommandInfo *info)
-{
-#if defined(__AVR__)
-    if (sizeof(ShellCommandFunc) == 2) {
-        return (ShellCommandFunc)pgm_read_word
-            (((const uint8_t *)info) + offsetof(ShellCommandInfo, func));
-    } else {
-        return (ShellCommandFunc)pgm_read_dword
-            (((const uint8_t *)info) + offsetof(ShellCommandInfo, func));
-    }
-#else
-    return info->func;
-#endif
-}
+// // Reads the "func" field from a command information block in program memory.
+// static ShellCommandFunc readInfoFunc(const ShellCommandInfo *info)
+// {
+// #if defined(__AVR__)
+//     if (sizeof(ShellCommandFunc) == 2) {
+//         return (ShellCommandFunc)pgm_read_word
+//             (((const uint8_t *)info) + offsetof(ShellCommandInfo, func));
+//     } else {
+//         return (ShellCommandFunc)pgm_read_dword
+//             (((const uint8_t *)info) + offsetof(ShellCommandInfo, func));
+//     }
+// #else
+//     return info->func;
+// #endif
+// }
 
 static ShellCommandRegister *firstCmd = 0;
 
@@ -594,7 +594,7 @@ void Shell::exit()
 void Shell::beginSession()
 {
     // No login support in the base class, so enter normal mode immediately.
-    lineMode = LINEMODE_NORMAL | LINEMODE_ECHO | LINEMODE_PROMPT;
+    lineMode = LINEMODE_NORMAL /*| LINEMODE_ECHO*/ | LINEMODE_PROMPT;
 }
 
 /**
@@ -697,8 +697,8 @@ bool Shell::execute(const ShellArguments &argv)
     ShellCommandRegister *current = firstCmd;
     while (current != 0) {
         if (!strcmp_P(argv0, readInfoName(current->info))) {
-            ShellCommandFunc func = readInfoFunc(current->info);
-            (*func)(*this, (const __FlashStringHelper*)readInfoName(current->info), argv.count(), argv);
+            //ShellCommandFunc func = readInfoFunc(current->info);
+            (*current->func)(*this, (const __FlashStringHelper*)readInfoName(current->info), argv.count(), argv);
             return true;
         }
         current = current->next;
