@@ -16,31 +16,18 @@ byte macAddress[6] = {
 
 int ledPin = 13;
 
-EthernetServer server(23);
-EthernetClient client;
+EthernetServer shellServer(23);
+EthernetClient shellClient;
 bool haveClient = false;
 
-Shell shell;
+LoginShell shell;
 
-static int noSecurityPasswordCheckFunc(const char *username, const char *password)
+void cmdLed(Shell &shell, const __FlashStringHelper* name, int argc, const ShellArguments &argv)
 {
-    return 0;
-}
-
-
-void cmdLed(Shell &shell, int argc, const ShellArguments &argv)
-{
-    if (argc > 1 && !strcmp(argv[1], "on")){
+    if (argc > 1 && !strcmp(argv[1], "on"))
         digitalWrite(ledPin, HIGH);
-    }
-    else if (argc > 1 && !strcmp(argv[1], "off")){
+    else
         digitalWrite(ledPin, LOW);
-    }
-    else if  (argc > 1 && !strcmp(argv[1], "?")){
-        shell.print("led set to ");
-        shell.println(digitalRead(ledPin), DEC);
-    }
-
 }
 
 ShellCommand(led, "Turns the status LED on or off", cmdLed);
@@ -52,7 +39,7 @@ void setup()
     digitalWrite(ledPin, LOW);
 
     // Start the serial port for status messages.
-    Serial.begin(115200);
+    Serial.begin(9600);
     Serial.println();
     Serial.print("Acquiring IP address ... ");
 
@@ -63,10 +50,8 @@ void setup()
         Serial.println("failed");
 
     // Listen on port 23 for incoming telnet connections.
-    server.begin();
-    //shell.setPasswordCheckFunction(&noSecurityPasswordCheckFunc);
-    //shell.setMachineName("Arduino");
-    shell.setPrompt(">");
+    shellServer.begin();
+    shell.setMachineName("Arduino");
 }
 
 void loop()
@@ -77,16 +62,16 @@ void loop()
     // Handle new/disconnecting clients.
     if (!haveClient) {
         // Check for new client connections.
-        client = server.available();
-        if (client) {
+        shellClient = shellServer.available();
+        if (shellClient) {
             haveClient = true;
-            shell.begin(client, 5);
+            shell.begin(shellClient, 5);
         }
-    } else if (!client.connected()) {
+    } else if (!shellClient.connected()) {
         // The current client has been disconnected.  Shut down the shell.
         shell.end();
-        client.stop();
-        client = EthernetClient();
+        shellClient.stop();
+        shellClient = EthernetClient();
         haveClient = false;
     }
 

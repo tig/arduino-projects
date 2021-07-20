@@ -36,7 +36,15 @@ class LoginShell;
 #define SHELL_MAX_CMD_LEN   64
 #endif
 
-typedef void (*ShellCommandFunc)(Shell &shell, int argc, const ShellArguments &argv);
+/**
+ * \brief Function that gets called when the command is executed
+ *
+ * \param shell The Shell stream.
+ * \param name A PROGMEM pointer to the name of the command
+ * \param argc The number of arguments
+ * \param argv The arguments, if any
+ */
+typedef void (*ShellCommandFunc)(Shell &shell, const __FlashStringHelper* shell_id_name, int argc, const ShellArguments &argv);
 
 /** @cond */
 

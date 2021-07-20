@@ -698,7 +698,7 @@ bool Shell::execute(const ShellArguments &argv)
     while (current != 0) {
         if (!strcmp_P(argv0, readInfoName(current->info))) {
             ShellCommandFunc func = readInfoFunc(current->info);
-            (*func)(*this, argv.count(), argv);
+            (*func)(*this, (const __FlashStringHelper*)readInfoName(current->info), argv.count(), argv);
             return true;
         }
         current = current->next;

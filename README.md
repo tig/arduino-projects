@@ -16,3 +16,8 @@ can be found [here](https://github.com/rweather/arduinolibs).
 For more information on these libraries, to report bugs, or to suggest
 improvements, please contact the author Rhys Weatherley via
 [email](mailto:rhys.weatherley@gmail.com).
+
+## PlatformIO Info
+The `library.json` in the root enables Shell (now in `lib/Shell` to be built as a PlatformIO Library).
+
+TODO: Figure out how to do this to the other 'libraries' in `libraries`
