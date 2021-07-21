@@ -89,6 +89,8 @@ class Shell : public Terminal {
   int userid() const { return uid; }
   void setUserid(int userid) { uid = userid; }
 
+  bool execute(ShellCommandRegister* command);
+
   void help();
   void exit();
 

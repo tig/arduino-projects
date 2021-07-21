@@ -724,6 +724,21 @@ void Shell::executeBuiltin(const char *cmd)
 }
 
 /**
+ * \brief Executes a command given a ShellCommandRegister
+ *
+ * \param cmd The command to execute.
+ */
+bool Shell::execute(ShellCommandRegister* command) {
+    char buf[64];
+    int len = strlen_P((const char*)command->name);
+    strncpy_P(buf, (const char*)command->name, 64);    
+    ShellArguments argv(buf, len);
+    (*command->func)(*this, command, argv.count(), argv);
+    return true;
+}
+
+
+/**
  * \brief Clears characters from the input line by backspacing over them.
  *
  * \param len The number of characters to clear.
