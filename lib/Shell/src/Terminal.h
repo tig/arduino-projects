@@ -61,7 +61,7 @@ public:
     virtual size_t write(const uint8_t *buffer, size_t size);
     using Stream::write;
 
-    void writeProgMem(const char *str);
+    void writeProgMem(const __FlashStringHelper *str);
 
     int readKey();
 

@@ -129,7 +129,7 @@ Shell::Shell()
     , historySize(0)
     , prom("$ ")
     , isClient(false)
-    , lineMode(LINEMODE_NORMAL) // | LINEMODE_ECHO)
+    , lineMode(LINEMODE_NORMAL | LINEMODE_ECHO)
     , uid(-1)
     , timer(0)
 {
@@ -395,8 +395,10 @@ void Shell::loop()
 #if defined(__AVR__)
 
 // String compare of two strings in program memory.
-static int progmem_strcmp(const char *str1, const char *str2)
+static int progmem_strcmp(const __FlashStringHelper *_str1, const __FlashStringHelper *_str2)
 {
+    const char* str1 = (const char*)_str1;
+    const char* str2 = (const char*)_str2;
     uint8_t ch1, ch2;
     for (;;) {
         ch1 = pgm_read_byte((const uint8_t *)str1);
@@ -424,26 +426,26 @@ static int progmem_strcmp(const char *str1, const char *str2)
 #endif
 
 // Reads the "name" field from a command information block in program memory.
-static const char *readInfoName(const ShellCommandInfo *info)
-{
-#if defined(__AVR__)
-    return (const char *)pgm_read_word
-        (((const uint8_t *)info) + offsetof(ShellCommandInfo, name));
-#else
-    return info->name;
-#endif
-}
+// static const char *readInfoName(const ShellCommandInfo *info)
+// {
+// #if defined(__AVR__)
+//     return (const char *)pgm_read_word
+//         (((const uint8_t *)info) + offsetof(ShellCommandInfo, name));
+// #else
+//     return info->name;
+// #endif
+// }
 
 // Reads the "help" field from a command information block in program memory.
-static const char *readInfoHelp(const ShellCommandInfo *info)
-{
-#if defined(__AVR__)
-    return (const char *)pgm_read_word
-        (((const uint8_t *)info) + offsetof(ShellCommandInfo, help));
-#else
-    return info->help;
-#endif
-}
+// static const char *readInfoHelp(const ShellCommandInfo *info)
+// {
+// #if defined(__AVR__)
+//     return (const char *)pgm_read_word
+//         (((const uint8_t *)info) + offsetof(ShellCommandInfo, help));
+// #else
+//     return info->help;
+// #endif
+// }
 
 // // Reads the "func" field from a command information block in program memory.
 // static ShellCommandFunc readInfoFunc(const ShellCommandInfo *info)
@@ -476,7 +478,7 @@ void Shell::registerCommand(ShellCommandRegister *cmd)
     ShellCommandRegister *prev = 0;
     ShellCommandRegister *current = firstCmd;
     while (current != 0) {
-        if (progmem_strcmp(readInfoName(cmd->info), readInfoName(current->info)) < 0)
+        if (progmem_strcmp(cmd->name, current->name) < 0)
             break;
         prev = current;
         current = current->next;
@@ -546,7 +548,7 @@ void Shell::help()
     size_t maxLen = 0;
     size_t len;
     while (current != 0) {
-        len = strlen_P(readInfoName(current->info));
+        len = strlen_P((const char*)current->name);
         if (len > maxLen)
             maxLen = len;
         current = current->next;
@@ -556,13 +558,13 @@ void Shell::help()
     // Print the commands with the help strings aligned on the right.
     current = firstCmd;
     while (current != 0) {
-        writeProgMem(readInfoName(current->info));
-        len = maxLen - strlen_P(readInfoName(current->info));
+        writeProgMem(current->name);
+        len = maxLen - strlen_P((const char*)current->name);
         while (len > 0) {
             write(' ');
             --len;
         }
-        writeProgMem(readInfoHelp(current->info));
+        writeProgMem(current->help);
         println();
         current = current->next;
     }
@@ -594,7 +596,7 @@ void Shell::exit()
 void Shell::beginSession()
 {
     // No login support in the base class, so enter normal mode immediately.
-    lineMode = LINEMODE_NORMAL /*| LINEMODE_ECHO*/ | LINEMODE_PROMPT;
+    lineMode = LINEMODE_NORMAL | LINEMODE_ECHO | LINEMODE_PROMPT;
 }
 
 /**
@@ -673,7 +675,7 @@ void Shell::execute()
                 exit();
             } else {
                 static char const unknown_cmd[] PROGMEM = "Unknown command: ";
-                writeProgMem(unknown_cmd);
+                writeProgMem((const __FlashStringHelper*)unknown_cmd);
                 print(argv0);
                 println();
             }
@@ -696,9 +698,9 @@ bool Shell::execute(const ShellArguments &argv)
     const char *argv0 = argv[0];
     ShellCommandRegister *current = firstCmd;
     while (current != 0) {
-        if (!strcmp_P(argv0, readInfoName(current->info))) {
+        if (!strcmp_P(argv0, (const char*)current->name)) {
             //ShellCommandFunc func = readInfoFunc(current->info);
-            (*current->func)(*this, (const __FlashStringHelper*)readInfoName(current->info), argv.count(), argv);
+            (*current->func)(*this, current, argv.count(), argv);
             return true;
         }
         current = current->next;
@@ -1006,8 +1008,6 @@ void LoginShell::beginSession()
 
 void LoginShell::printPrompt()
 {
-    static char const loginString[] PROGMEM = "login: ";
-    static char const passwordString[] PROGMEM = "Password: ";
     if (lineMode & LINEMODE_NORMAL) {
         // Print the prompt for normal command entry.
         if (prom)
@@ -1023,7 +1023,7 @@ void LoginShell::printPrompt()
             print(machName);
             write((uint8_t)' ');
         }
-        writeProgMem(loginString);
+        writeProgMem(F("login: "));
 
         // Login name is placed into the first half of the line buffer.
         curStart = 0;
@@ -1031,7 +1031,7 @@ void LoginShell::printPrompt()
         curMax = sizeof(buffer) / 2;
     } else if (lineMode & LINEMODE_PASSWORD) {
         // Print the password prompt.
-        writeProgMem(passwordString);
+        writeProgMem(F("Password: "));
 
         // Password is placed into the second half of the line buffer.
         curStart = sizeof(buffer) / 2;

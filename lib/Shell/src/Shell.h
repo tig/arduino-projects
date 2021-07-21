@@ -31,10 +31,13 @@ class ShellArguments;
 class LoginShell;
 
 #if defined(__arm__)
-#define SHELL_MAX_CMD_LEN   256
+#define SHELL_MAX_CMD_LEN 256
 #else
-#define SHELL_MAX_CMD_LEN   64
+#define SHELL_MAX_CMD_LEN 64
 #endif
+
+// forward declare
+class ShellCommandRegister;
 
 /**
  * \brief Function that gets called when the command is executed
@@ -44,128 +47,126 @@ class LoginShell;
  * \param argc The number of arguments
  * \param argv The arguments, if any
  */
-typedef void (*ShellCommandFunc)(Shell &shell, const __FlashStringHelper* shell_id_name, int argc, const ShellArguments &argv);
+typedef void (*ShellCommandFunc)(Shell &shell, ShellCommandRegister *command, int argc, const ShellArguments &argv);
 
 /** @cond */
 
-typedef struct
-{
-    const char *name;
-    const char *help;
+// typedef struct
+// {
+//   const char *name;
+//   const char *help;
 
-} ShellCommandInfo;
+// } ShellCommandInfo;
 
-class ShellCommandRegister
-{
-public:
-    inline ShellCommandRegister(const ShellCommandInfo *_info, ShellCommandFunc func);
+class ShellCommandRegister {
+ public:
+  inline ShellCommandRegister(const __FlashStringHelper *name, const __FlashStringHelper *help, ShellCommandFunc func);
 
-    const ShellCommandInfo *info;
-    ShellCommandFunc func;
-    ShellCommandRegister *next;
+  const __FlashStringHelper *name;
+  const __FlashStringHelper *help;
+  ShellCommandFunc func;
+  ShellCommandRegister *next;
 };
 
 /** @endcond */
 
-class Shell : public Terminal
-{
-public:
-    Shell();
-    virtual ~Shell();
+class Shell : public Terminal {
+ public:
+  Shell();
+  virtual ~Shell();
 
-    bool begin(Stream &stream, size_t maxHistory = 0, Terminal::Mode mode = Serial);
-    bool begin(Client &client, size_t maxHistory = 0, Terminal::Mode mode = Telnet);
-    void end();
+  bool begin(Stream &stream, size_t maxHistory = 0, Terminal::Mode mode = Serial);
+  bool begin(Client &client, size_t maxHistory = 0, Terminal::Mode mode = Telnet);
+  void end();
 
-    void loop();
+  void loop();
 
-    static void registerCommand(ShellCommandRegister *cmd);
+  static void registerCommand(ShellCommandRegister *cmd);
 
-    const char *prompt() const { return prom; }
-    void setPrompt(const char *prompt) { prom = prompt; }
+  const char *prompt() const { return prom; }
+  void setPrompt(const char *prompt) { prom = prompt; }
 
-    int userid() const { return uid; }
-    void setUserid(int userid) { uid = userid; }
+  int userid() const { return uid; }
+  void setUserid(int userid) { uid = userid; }
 
-    void help();
-    void exit();
+  void help();
+  void exit();
 
-protected:
-    virtual void beginSession();
-    virtual void printPrompt();
-    virtual void execute();
+ protected:
+  virtual void beginSession();
+  virtual void printPrompt();
+  virtual void execute();
 
-private:
-    char buffer[SHELL_MAX_CMD_LEN];
-    size_t curStart;
-    size_t curLen;
-    size_t curMax;
-    char *history;
-    size_t historyWrite;
-    size_t historyRead;
-    size_t historySize;
-    const char *prom;
-    bool isClient;
-    uint8_t lineMode;
-    int uid;
-    unsigned long timer;
+ private:
+  char buffer[SHELL_MAX_CMD_LEN];
+  size_t curStart;
+  size_t curLen;
+  size_t curMax;
+  char *history;
+  size_t historyWrite;
+  size_t historyRead;
+  size_t historySize;
+  const char *prom;
+  bool isClient;
+  uint8_t lineMode;
+  int uid;
+  unsigned long timer;
 
-    // Disable copy constructor and operator=().
-    Shell(const Shell &other) {}
-    Shell &operator=(const Shell &) { return *this; }
+  // Disable copy constructor and operator=().
+  Shell(const Shell &other) {}
+  Shell &operator=(const Shell &) { return *this; }
 
-    bool beginShell(Stream &stream, size_t maxHistory, Terminal::Mode mode);
-    bool execute(const ShellArguments &argv);
-    void executeBuiltin(const char *cmd);
-    void clearCharacters(size_t len);
-    void changeHistory(bool up);
-    void clearHistory();
+  bool beginShell(Stream &stream, size_t maxHistory, Terminal::Mode mode);
+  bool execute(const ShellArguments &argv);
+  void executeBuiltin(const char *cmd);
+  void clearCharacters(size_t len);
+  void changeHistory(bool up);
+  void clearHistory();
 
-    friend class LoginShell;
+  friend class LoginShell;
 };
 
-class ShellArguments
-{
-    friend class Shell;
-private:
-    ShellArguments(char *buffer, size_t len);
-    ~ShellArguments() {}
-public:
+class ShellArguments {
+  friend class Shell;
 
-    int count() const { return argc; }
-    const char *operator[](int index) const;
+ private:
+  ShellArguments(char *buffer, size_t len);
+  ~ShellArguments() {}
 
-private:
-    const char *line;
-    size_t size;
-    int argc;
-    mutable int currentIndex;
-    mutable size_t currentPosn;
+ public:
+  int count() const { return argc; }
+  const char *operator[](int index) const;
 
-    // Disable copy constructor and operator=().
-    ShellArguments(const ShellArguments &other) {}
-    ShellArguments &operator=(const ShellArguments &) { return *this; }
+ private:
+  const char *line;
+  size_t size;
+  int argc;
+  mutable int currentIndex;
+  mutable size_t currentPosn;
+
+  // Disable copy constructor and operator=().
+  ShellArguments(const ShellArguments &other) {}
+  ShellArguments &operator=(const ShellArguments &) { return *this; }
 };
 
 /** @cond */
 
-inline ShellCommandRegister::ShellCommandRegister(const ShellCommandInfo *_info, ShellCommandFunc func)
-    : info(_info), 
-    func(func),
-    next(0)
-{
-    Shell::registerCommand(this);
+inline ShellCommandRegister::ShellCommandRegister(const __FlashStringHelper *name, const __FlashStringHelper *help, ShellCommandFunc func)
+    : name(name),
+      help(help),
+      func(func),
+      next(0) {
+  Shell::registerCommand(this);
 }
 
+#define ShellCommand(name, help, function)                    \
+  static char const shell_id_##name[] PROGMEM = #name;        \
+  static char const shell_help_##name[] PROGMEM = help;       \
+  static ShellCommandRegister shell_cmd_##name((const __FlashStringHelper *)shell_id_##name, (const __FlashStringHelper *)shell_help_##name, (function))
+
+#define ShellCommandClass(name, help, function)                             \
+  new ShellCommandRegister((const __FlashStringHelper *)PSTR(#name), (const __FlashStringHelper *)PSTR(help), \
+  [](Shell & shell, ShellCommandRegister * command, int argc, const ShellArguments &argv) function);
+
 /** @endcond */
-
-#define ShellCommand(name,help,function)    \
-    static char const shell_id_##name[] PROGMEM = #name; \
-    static char const shell_help_##name[] PROGMEM = help; \
-    static ShellCommandInfo const shell_info_##name PROGMEM = { \
-        shell_id_##name, \
-        shell_help_##name \
-    }; \
-    static ShellCommandRegister shell_cmd_##name(&shell_info_##name, (function))
-
 #endif

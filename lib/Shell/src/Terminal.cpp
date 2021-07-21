@@ -311,8 +311,9 @@ size_t Terminal::write(const uint8_t *buffer, size_t size)
  *
  * \sa write()
  */
-void Terminal::writeProgMem(const char *str)
+void Terminal::writeProgMem(const __FlashStringHelper *_str)
 {
+    const char* str = (const char*)_str;
     uint8_t buffer[16];
     uint8_t posn;
     uint8_t ch;
@@ -823,8 +824,7 @@ bool Terminal::setWindowSize(int columns, int rows)
  */
 void Terminal::clear()
 {
-    static char const escape[] PROGMEM = "\033[H\033[J";
-    writeProgMem(escape);
+    writeProgMem(F("\033[H\033[J"));
 }
 
 /**
@@ -832,8 +832,7 @@ void Terminal::clear()
  */
 void Terminal::clearToEOL()
 {
-    static char const escape[] PROGMEM = "\033[K";
-    writeProgMem(escape);
+    writeProgMem(F("\033[K"));
 }
 
 // Writes a decimal number to a buffer.
@@ -897,8 +896,7 @@ void Terminal::cursorMove(int x, int y)
  */
 void Terminal::cursorLeft()
 {
-    static char const escape[] PROGMEM = "\033[D";
-    writeProgMem(escape);
+    writeProgMem(F("\033[D"));
 }
 
 /**
@@ -908,8 +906,7 @@ void Terminal::cursorLeft()
  */
 void Terminal::cursorRight()
 {
-    static char const escape[] PROGMEM = "\033[C";
-    writeProgMem(escape);
+    writeProgMem(F("\033[C"));
 }
 
 /**
@@ -919,8 +916,7 @@ void Terminal::cursorRight()
  */
 void Terminal::cursorUp()
 {
-    static char const escape[] PROGMEM = "\033[A";
-    writeProgMem(escape);
+    writeProgMem(F("\033[A"));
 }
 
 /**
@@ -930,8 +926,7 @@ void Terminal::cursorUp()
  */
 void Terminal::cursorDown()
 {
-    static char const escape[] PROGMEM = "\033[B";
-    writeProgMem(escape);
+    writeProgMem(F("\033[B"));
 }
 
 /**
@@ -948,8 +943,7 @@ void Terminal::cursorDown()
  */
 void Terminal::backspace()
 {
-    static char const escape[] PROGMEM = "\b \b";
-    writeProgMem(escape);
+    writeProgMem(F("\b \b"));
 }
 
 /**
@@ -959,8 +953,7 @@ void Terminal::backspace()
  */
 void Terminal::insertLine()
 {
-    static char const escape[] PROGMEM = "\033[L";
-    writeProgMem(escape);
+    writeProgMem(F("\033[L"));
 }
 
 /**
@@ -970,8 +963,7 @@ void Terminal::insertLine()
  */
 void Terminal::insertChar()
 {
-    static char const escape[] PROGMEM = "\033[@";
-    writeProgMem(escape);
+    writeProgMem(F("\033[@"));
 }
 
 /**
@@ -981,8 +973,7 @@ void Terminal::insertChar()
  */
 void Terminal::deleteLine()
 {
-    static char const escape[] PROGMEM = "\033[M";
-    writeProgMem(escape);
+    writeProgMem(F("\033[M"));
 }
 
 /**
@@ -992,8 +983,7 @@ void Terminal::deleteLine()
  */
 void Terminal::deleteChar()
 {
-    static char const escape[] PROGMEM = "\033[P";
-    writeProgMem(escape);
+    writeProgMem(F("\033[P"));
 }
 
 /**
@@ -1003,8 +993,7 @@ void Terminal::deleteChar()
  */
 void Terminal::scrollUp()
 {
-    static char const escape[] PROGMEM = "\033[S";
-    writeProgMem(escape);
+    writeProgMem(F("\033[S"));
 }
 
 /**
@@ -1014,8 +1003,7 @@ void Terminal::scrollUp()
  */
 void Terminal::scrollDown()
 {
-    static char const escape[] PROGMEM = "\033[T";
-    writeProgMem(escape);
+    writeProgMem(F("\033[T"));
 }
 
 /**
@@ -1025,8 +1013,7 @@ void Terminal::scrollDown()
  */
 void Terminal::normal()
 {
-    static char const escape[] PROGMEM = "\033[0m";
-    writeProgMem(escape);
+    writeProgMem(F("\033[0m"));
 }
 
 /**
@@ -1036,8 +1023,7 @@ void Terminal::normal()
  */
 void Terminal::bold()
 {
-    static char const escape[] PROGMEM = "\033[1m";
-    writeProgMem(escape);
+    writeProgMem(F("\033[1m"));
 }
 
 /**
@@ -1045,8 +1031,7 @@ void Terminal::bold()
  */
 void Terminal::underline()
 {
-    static char const escape[] PROGMEM = "\033[4m";
-    writeProgMem(escape);
+    writeProgMem(F("\033[4m"));
 }
 
 /**
@@ -1054,8 +1039,7 @@ void Terminal::underline()
  */
 void Terminal::blink()
 {
-    static char const escape[] PROGMEM = "\033[5m";
-    writeProgMem(escape);
+    writeProgMem(F("\033[5m"));
 }
 
 /**
@@ -1063,8 +1047,7 @@ void Terminal::blink()
  */
 void Terminal::reverse()
 {
-    static char const escape[] PROGMEM = "\033[7m";
-    writeProgMem(escape);
+    writeProgMem(F("\033[7m"));
 }
 
 /**
